@@ -6,18 +6,28 @@ const EM_AMBIENTE_SERVERLESS = Boolean(
 );
 
 async function lancarBrowser() {
-  if (EM_AMBIENTE_SERVERLESS) {
-    return chromium.launch({
-      args: chromiumServerless.args,
-      executablePath: await chromiumServerless.executablePath(),
-      headless: true,
-    });
-  }
+  console.log("[maps] Antes de chromium.launch()", {
+    serverless: EM_AMBIENTE_SERVERLESS,
+  });
+  console.time("[maps] chromium.launch()");
 
-  return chromium.launch({ headless: true });
+  const browser = EM_AMBIENTE_SERVERLESS
+    ? await chromium.launch({
+        args: chromiumServerless.args,
+        executablePath: await chromiumServerless.executablePath(),
+        headless: true,
+      })
+    : await chromium.launch({ headless: true });
+
+  console.timeEnd("[maps] chromium.launch()");
+  console.log("[maps] Depois de chromium.launch()");
+
+  return browser;
 }
 
 export async function buscarEmpresasMaps(termoBusca: string = "clínicas Curitiba") {
+  console.log("[maps] Início de buscarEmpresasMaps()", { termoBusca });
+
   const browser = await lancarBrowser();
 
   try {
@@ -32,7 +42,11 @@ async function buscarEmpresasMapsComBrowser(
   browser: Awaited<ReturnType<typeof chromium.launch>>,
   termoBusca: string
 ) {
+  console.log("[maps] Antes de browser.newPage()");
+  console.time("[maps] browser.newPage()");
   const page = await browser.newPage();
+  console.timeEnd("[maps] browser.newPage()");
+  console.log("[maps] Depois de browser.newPage()");
 
   await page.route("**/*", (route) => {
     const tipo = route.request().resourceType();
@@ -44,7 +58,11 @@ async function buscarEmpresasMapsComBrowser(
     return route.continue();
   });
 
+  console.log("[maps] Antes de page.goto(https://maps.google.com)");
+  console.time("[maps] page.goto(https://maps.google.com)");
   await page.goto("https://maps.google.com");
+  console.timeEnd("[maps] page.goto(https://maps.google.com)");
+  console.log("[maps] Depois de page.goto(https://maps.google.com)");
 
   await page.waitForTimeout(5000);
 
@@ -52,6 +70,9 @@ async function buscarEmpresasMapsComBrowser(
 
   const searchInputCount = await searchInput.count();
   console.log("Campo de busca encontrado:", searchInputCount > 0);
+
+  console.log("[maps] Antes da pesquisa no Google Maps", { termoBusca });
+  console.time("[maps] Pesquisa no Google Maps");
 
   await searchInput.fill(termoBusca);
   console.log("Texto preenchido com sucesso");
@@ -72,6 +93,9 @@ async function buscarEmpresasMapsComBrowser(
   console.log(page.url());
 
   await page.waitForTimeout(5000);
+
+  console.timeEnd("[maps] Pesquisa no Google Maps");
+  console.log("[maps] Depois da pesquisa no Google Maps");
 
   const linkCount = await page.locator("a").count();
   const buttonCount = await page.locator("button").count();
@@ -119,6 +143,7 @@ async function buscarEmpresasMapsComBrowser(
 
   const results = Array.from(empresasMap.values());
 
+  console.log("[maps] Quantidade de empresas encontradas:", results.length);
   console.log(results);
 
   return { browser, page, results };
