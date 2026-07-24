@@ -1,4 +1,3 @@
-import { writeFile } from "fs/promises";
 import { buscarEmpresasMaps } from "./maps";
 import { extrairDadosEmpresa } from "./extract";
 import { inserirLead } from "../storage/leads";
@@ -45,11 +44,6 @@ export async function executarScraping(
         } catch {
           console.log("URL atual:", page.url());
         }
-
-        await page.screenshot({ path: "maps-company-debug.png" });
-
-        const companyHtml = await page.content();
-        await writeFile("maps-company-debug.html", companyHtml);
 
         const companyData = await extrairDadosEmpresa(page);
 

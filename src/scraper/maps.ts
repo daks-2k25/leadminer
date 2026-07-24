@@ -1,8 +1,24 @@
-import { chromium } from "playwright";
-import { writeFile } from "fs/promises";
+import { chromium } from "playwright-core";
+import chromiumServerless from "@sparticuz/chromium";
+
+const EM_AMBIENTE_SERVERLESS = Boolean(
+  process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME
+);
+
+async function lancarBrowser() {
+  if (EM_AMBIENTE_SERVERLESS) {
+    return chromium.launch({
+      args: chromiumServerless.args,
+      executablePath: await chromiumServerless.executablePath(),
+      headless: true,
+    });
+  }
+
+  return chromium.launch({ headless: true });
+}
 
 export async function buscarEmpresasMaps(termoBusca: string = "clínicas Curitiba") {
-  const browser = await chromium.launch();
+  const browser = await lancarBrowser();
 
   try {
     return await buscarEmpresasMapsComBrowser(browser, termoBusca);
@@ -32,11 +48,6 @@ async function buscarEmpresasMapsComBrowser(
 
   await page.waitForTimeout(5000);
 
-  await page.screenshot({ path: "maps-debug.png" });
-
-  const html = await page.content();
-  await writeFile("maps-debug.html", html);
-
   const searchInput = page.locator('input[name="q"]');
 
   const searchInputCount = await searchInput.count();
@@ -61,11 +72,6 @@ async function buscarEmpresasMapsComBrowser(
   console.log(page.url());
 
   await page.waitForTimeout(5000);
-
-  await page.screenshot({ path: "maps-results-debug.png" });
-
-  const resultsHtml = await page.content();
-  await writeFile("maps-results-debug.html", resultsHtml);
 
   const linkCount = await page.locator("a").count();
   const buttonCount = await page.locator("button").count();
