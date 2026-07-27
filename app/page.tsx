@@ -23,7 +23,11 @@ export default function Home() {
   }, []);
 
   const handleExportar = async () => {
-    const response = await fetch("/api/export");
+    const response = await fetch("/api/export", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(leads),
+    });
     const blob = await response.blob();
 
     const url = URL.createObjectURL(blob);

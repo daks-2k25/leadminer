@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import ExcelJS from "exceljs";
-import { listarLeads } from "@/src/storage/leads";
+import { Lead } from "@/src/models/lead";
 
 const COLUNAS = [
   { header: "Empresa", key: "nome" },
@@ -29,8 +29,8 @@ function celulaTexto(valor: unknown): string {
   return valor ? String(valor) : "";
 }
 
-export async function GET() {
-  const leads = listarLeads();
+export async function POST(request: Request) {
+  const leads: Lead[] = await request.json();
 
   const workbook = new ExcelJS.Workbook();
   const sheet = workbook.addWorksheet("Leads");

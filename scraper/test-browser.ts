@@ -1,4 +1,4 @@
-import { chromium } from "playwright";
+import { chromium } from "playwright-core";
 
 async function testBrowser() {
   const browser = await chromium.launch();
