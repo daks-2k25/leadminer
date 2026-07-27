@@ -9,7 +9,7 @@ async function lancarBrowser() {
   console.log("[maps] Antes de chromium.launch()", {
     serverless: EM_AMBIENTE_SERVERLESS,
   });
-  console.time("[maps] chromium.launch()");
+  console.time("[perf] abrir navegador");
 
   const browser = EM_AMBIENTE_SERVERLESS
     ? await chromium.launch({
@@ -19,7 +19,7 @@ async function lancarBrowser() {
       })
     : await chromium.launch({ headless: true });
 
-  console.timeEnd("[maps] chromium.launch()");
+  console.timeEnd("[perf] abrir navegador");
   console.log("[maps] Depois de chromium.launch()");
 
   return browser;
@@ -59,9 +59,9 @@ async function buscarEmpresasMapsComBrowser(
   });
 
   console.log("[maps] Antes de page.goto(https://maps.google.com)");
-  console.time("[maps] page.goto(https://maps.google.com)");
+  console.time("[perf] abrir Google Maps");
   await page.goto("https://maps.google.com");
-  console.timeEnd("[maps] page.goto(https://maps.google.com)");
+  console.timeEnd("[perf] abrir Google Maps");
   console.log("[maps] Depois de page.goto(https://maps.google.com)");
 
   await page.waitForTimeout(5000);
@@ -72,7 +72,7 @@ async function buscarEmpresasMapsComBrowser(
   console.log("Campo de busca encontrado:", searchInputCount > 0);
 
   console.log("[maps] Antes da pesquisa no Google Maps", { termoBusca });
-  console.time("[maps] Pesquisa no Google Maps");
+  console.time("[perf] pesquisar termo");
 
   await searchInput.fill(termoBusca);
   console.log("Texto preenchido com sucesso");
@@ -94,7 +94,7 @@ async function buscarEmpresasMapsComBrowser(
 
   await page.waitForTimeout(5000);
 
-  console.timeEnd("[maps] Pesquisa no Google Maps");
+  console.timeEnd("[perf] pesquisar termo");
   console.log("[maps] Depois da pesquisa no Google Maps");
 
   const linkCount = await page.locator("a").count();
@@ -110,6 +110,9 @@ async function buscarEmpresasMapsComBrowser(
   const resultsContainer = page.locator('[role="feed"]');
 
   const empresasMap = new Map<string, { nome: string | null; urlMaps: string | null }>();
+
+  console.log("[maps] Antes de extrair lista de empresas");
+  console.time("[perf] extrair lista de empresas");
 
   const coletarResultados = async () => {
     const cards = await page.$$eval('[role="article"]', (articles) =>
@@ -131,6 +134,9 @@ async function buscarEmpresasMapsComBrowser(
 
   await coletarResultados();
 
+  console.log("[maps] Antes de carregar resultados (scroll)");
+  console.time("[perf] carregar resultados");
+
   for (let i = 0; i < 5; i++) {
     await resultsContainer.evaluate((el) => {
       el.scrollTop = el.scrollHeight;
@@ -141,7 +147,13 @@ async function buscarEmpresasMapsComBrowser(
     await coletarResultados();
   }
 
+  console.timeEnd("[perf] carregar resultados");
+  console.log("[maps] Depois de carregar resultados (scroll)");
+
   const results = Array.from(empresasMap.values());
+
+  console.timeEnd("[perf] extrair lista de empresas");
+  console.log("[maps] Depois de extrair lista de empresas");
 
   console.log("[maps] Quantidade de empresas encontradas:", results.length);
   console.log(results);

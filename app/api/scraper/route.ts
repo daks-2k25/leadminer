@@ -33,8 +33,12 @@ export async function POST(request: Request) {
     console.timeEnd("[API /api/scraper] executarScraping()");
     console.log("[API /api/scraper] Depois de executarScraping(). Leads retornados:", leads.length);
 
+    console.time("[perf] geração da resposta");
+    const resposta = NextResponse.json(leads);
+    console.timeEnd("[perf] geração da resposta");
+
     console.timeEnd("[API /api/scraper] Duração total da requisição");
-    return NextResponse.json(leads);
+    return resposta;
   } catch (erro) {
     console.error("[API /api/scraper] Erro ao executar scraping:", erro);
 

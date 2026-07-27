@@ -30,7 +30,7 @@ export async function executarScraping(
   }
 
   scrapingEmAndamento = true;
-  console.time("[executarScraping] Duração total de executarScraping()");
+  console.time("[perf] executarScraping() completo");
 
   try {
     const buscaComCidade = [termoBusca, bairro, cidade].filter(Boolean).join(" ");
@@ -41,18 +41,22 @@ export async function executarScraping(
     console.timeEnd("[executarScraping] buscarEmpresasMaps()");
     console.log("[executarScraping] Depois de buscarEmpresasMaps()");
 
-    console.log("Quantidade de resultados recebidos de buscarEmpresasMaps:", results.length);
+    console.log("[perf] Quantidade de empresas encontradas:", results.length);
 
     const empresas = [];
+    const temposPorEmpresa: number[] = [];
+
+    console.log("[executarScraping] Antes de visitar empresas");
+    console.time("[perf] visitar empresas");
 
     for (const result of results) {
       if (!result.urlMaps) continue;
 
+      const inicioEmpresa = Date.now();
+
       try {
         console.log("[executarScraping] Antes de page.goto()", result.urlMaps);
-        console.time(`[executarScraping] page.goto() -> ${result.urlMaps}`);
         await page.goto(result.urlMaps);
-        console.timeEnd(`[executarScraping] page.goto() -> ${result.urlMaps}`);
         console.log("[executarScraping] Depois de page.goto()", result.urlMaps);
 
         try {
@@ -62,9 +66,9 @@ export async function executarScraping(
         }
 
         console.log("[executarScraping] Antes da extração", page.url());
-        console.time(`[executarScraping] extração -> ${result.urlMaps}`);
+        console.time("[perf] extração de dados da empresa");
         const companyData = await extrairDadosEmpresa(page);
-        console.timeEnd(`[executarScraping] extração -> ${result.urlMaps}`);
+        console.timeEnd("[perf] extração de dados da empresa");
         console.log("[executarScraping] Depois da extração", companyData);
 
         const empresa = {
@@ -80,13 +84,27 @@ export async function executarScraping(
 
         empresas.push(empresa);
 
+        console.time("[perf] salvar leads");
         await inserirLead(empresa);
+        console.timeEnd("[perf] salvar leads");
+
+        temposPorEmpresa.push(Date.now() - inicioEmpresa);
       } catch (erro) {
         console.log("Erro ao processar empresa. URL:", result.urlMaps, "Erro:", erro);
       }
     }
 
-    console.log("[executarScraping] Quantidade de empresas encontradas:", empresas.length);
+    console.timeEnd("[perf] visitar empresas");
+    console.log("[executarScraping] Depois de visitar empresas");
+
+    const tempoMedioPorEmpresa =
+      temposPorEmpresa.length > 0
+        ? temposPorEmpresa.reduce((soma, tempo) => soma + tempo, 0) / temposPorEmpresa.length
+        : 0;
+
+    console.log("[perf] Quantidade de empresas realmente visitadas:", empresas.length);
+    console.log("[perf] Tempo médio por empresa (ms):", tempoMedioPorEmpresa.toFixed(2));
+
     console.log("Quantidade de empresas adicionadas ao array empresas:", empresas.length);
 
     console.log("[executarScraping] Antes de browser.close()");
@@ -97,7 +115,7 @@ export async function executarScraping(
 
     return empresas;
   } finally {
-    console.timeEnd("[executarScraping] Duração total de executarScraping()");
+    console.timeEnd("[perf] executarScraping() completo");
     scrapingEmAndamento = false;
   }
 }
