@@ -52,9 +52,9 @@ export async function executarScraping(
     console.log("[executarScraping] Antes de visitar empresas");
     console.time("[perf] visitar empresas");
 
-    const totalResultados = results.length;
+    const totalResultados = Math.min(results.length, 20);
 
-    for (let indice = 0; indice < results.length; indice++) {
+    for (let indice = 0; indice < totalResultados; indice++) {
       const result = results[indice];
       if (!result.urlMaps) continue;
 
