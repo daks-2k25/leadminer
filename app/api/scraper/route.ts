@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { executarScraping } from "@/src/scraper/service";
 
 export const runtime = "nodejs";
-export const maxDuration = 300;
+export const maxDuration = 60;
 
 export async function POST(request: Request) {
   console.log("[API /api/scraper] Início da API");
