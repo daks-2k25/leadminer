@@ -1,4 +1,4 @@
-import { buscarEmpresasMaps } from "./maps";
+import { buscarEmpresasMaps, type OnStatus } from "./maps";
 import { extrairDadosEmpresa } from "./extract";
 import { inserirLead } from "../storage/leads";
 
@@ -16,7 +16,8 @@ export async function executarScraping(
   termoBusca: string,
   cidade: string,
   bairro: string,
-  categoria: string
+  categoria: string,
+  onStatus?: OnStatus
 ) {
   console.log("[executarScraping] Início de executarScraping()", {
     termoBusca,
@@ -33,11 +34,13 @@ export async function executarScraping(
   console.time("[perf] executarScraping() completo");
 
   try {
+    onStatus?.("Iniciando scraper", 0);
+
     const buscaComCidade = [termoBusca, bairro, cidade].filter(Boolean).join(" ");
 
     console.log("[executarScraping] Antes de buscarEmpresasMaps()");
     console.time("[executarScraping] buscarEmpresasMaps()");
-    const { browser, page, results } = await buscarEmpresasMaps(buscaComCidade);
+    const { browser, page, results } = await buscarEmpresasMaps(buscaComCidade, onStatus);
     console.timeEnd("[executarScraping] buscarEmpresasMaps()");
     console.log("[executarScraping] Depois de buscarEmpresasMaps()");
 
@@ -49,12 +52,20 @@ export async function executarScraping(
     console.log("[executarScraping] Antes de visitar empresas");
     console.time("[perf] visitar empresas");
 
-    for (const result of results) {
+    const totalResultados = results.length;
+
+    for (let indice = 0; indice < results.length; indice++) {
+      const result = results[indice];
       if (!result.urlMaps) continue;
 
       const inicioEmpresa = Date.now();
+      const posicao = indice + 1;
+      const progressoVisita = totalResultados > 0
+        ? 40 + Math.round((posicao / totalResultados) * 50)
+        : 40;
 
       try {
+        onStatus?.(`Visitando empresa ${posicao}/${totalResultados}`, progressoVisita);
         console.log("[executarScraping] Antes de page.goto()", result.urlMaps);
         await page.goto(result.urlMaps);
         console.log("[executarScraping] Depois de page.goto()", result.urlMaps);
@@ -65,6 +76,7 @@ export async function executarScraping(
           console.log("URL atual:", page.url());
         }
 
+        onStatus?.(`Extraindo dados ${posicao}/${totalResultados}`, progressoVisita);
         console.log("[executarScraping] Antes da extração", page.url());
         console.time("[perf] extração de dados da empresa");
         const companyData = await extrairDadosEmpresa(page);
@@ -107,11 +119,15 @@ export async function executarScraping(
 
     console.log("Quantidade de empresas adicionadas ao array empresas:", empresas.length);
 
+    onStatus?.("Salvando leads", 95);
+
     console.log("[executarScraping] Antes de browser.close()");
     console.time("[executarScraping] browser.close()");
     await browser.close();
     console.timeEnd("[executarScraping] browser.close()");
     console.log("[executarScraping] Depois de browser.close()");
+
+    onStatus?.("Finalizado", 100);
 
     return empresas;
   } finally {

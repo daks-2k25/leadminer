@@ -1,6 +1,8 @@
 import { chromium } from "playwright-core";
 import chromiumServerless from "@sparticuz/chromium";
 
+export type OnStatus = (etapa: string, progresso: number) => void;
+
 const EM_AMBIENTE_SERVERLESS = Boolean(
   process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME
 );
@@ -25,13 +27,17 @@ async function lancarBrowser() {
   return browser;
 }
 
-export async function buscarEmpresasMaps(termoBusca: string = "clínicas Curitiba") {
+export async function buscarEmpresasMaps(
+  termoBusca: string = "clínicas Curitiba",
+  onStatus?: OnStatus
+) {
   console.log("[maps] Início de buscarEmpresasMaps()", { termoBusca });
 
+  onStatus?.("Abrindo navegador", 5);
   const browser = await lancarBrowser();
 
   try {
-    return await buscarEmpresasMapsComBrowser(browser, termoBusca);
+    return await buscarEmpresasMapsComBrowser(browser, termoBusca, onStatus);
   } catch (erro) {
     await browser.close();
     throw erro;
@@ -40,7 +46,8 @@ export async function buscarEmpresasMaps(termoBusca: string = "clínicas Curitib
 
 async function buscarEmpresasMapsComBrowser(
   browser: Awaited<ReturnType<typeof chromium.launch>>,
-  termoBusca: string
+  termoBusca: string,
+  onStatus?: OnStatus
 ) {
   console.log("[maps] Antes de browser.newPage()");
   console.time("[maps] browser.newPage()");
@@ -58,6 +65,7 @@ async function buscarEmpresasMapsComBrowser(
     return route.continue();
   });
 
+  onStatus?.("Abrindo Google Maps", 10);
   console.log("[maps] Antes de page.goto(https://maps.google.com)");
   console.time("[perf] abrir Google Maps");
   await page.goto("https://maps.google.com");
@@ -71,6 +79,7 @@ async function buscarEmpresasMapsComBrowser(
   const searchInputCount = await searchInput.count();
   console.log("Campo de busca encontrado:", searchInputCount > 0);
 
+  onStatus?.("Pesquisando termo", 20);
   console.log("[maps] Antes da pesquisa no Google Maps", { termoBusca });
   console.time("[perf] pesquisar termo");
 
@@ -111,6 +120,7 @@ async function buscarEmpresasMapsComBrowser(
 
   const empresasMap = new Map<string, { nome: string | null; urlMaps: string | null }>();
 
+  onStatus?.("Coletando empresas", 35);
   console.log("[maps] Antes de extrair lista de empresas");
   console.time("[perf] extrair lista de empresas");
 
