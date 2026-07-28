@@ -34,6 +34,7 @@ export async function executarScraping(
   console.time("[perf] executarScraping() completo");
 
   try {
+    console.log("[STATUS ENVIADO] Iniciando scraper");
     onStatus?.("Iniciando scraper", 0);
 
     const buscaComCidade = [termoBusca, bairro, cidade].filter(Boolean).join(" ");
@@ -52,9 +53,9 @@ export async function executarScraping(
     console.log("[executarScraping] Antes de visitar empresas");
     console.time("[perf] visitar empresas");
 
-    const totalResultados = Math.min(results.length, 20);
+    const totalResultados = results.length;
 
-    for (let indice = 0; indice < totalResultados; indice++) {
+    for (let indice = 0; indice < results.length; indice++) {
       const result = results[indice];
       if (!result.urlMaps) continue;
 
@@ -65,6 +66,7 @@ export async function executarScraping(
         : 40;
 
       try {
+        console.log(`[STATUS ENVIADO] Visitando empresa ${posicao}/${totalResultados}`);
         onStatus?.(`Visitando empresa ${posicao}/${totalResultados}`, progressoVisita);
         console.log("[executarScraping] Antes de page.goto()", result.urlMaps);
         await page.goto(result.urlMaps);
@@ -76,6 +78,7 @@ export async function executarScraping(
           console.log("URL atual:", page.url());
         }
 
+        console.log(`[STATUS ENVIADO] Extraindo dados ${posicao}/${totalResultados}`);
         onStatus?.(`Extraindo dados ${posicao}/${totalResultados}`, progressoVisita);
         console.log("[executarScraping] Antes da extração", page.url());
         console.time("[perf] extração de dados da empresa");
@@ -119,6 +122,7 @@ export async function executarScraping(
 
     console.log("Quantidade de empresas adicionadas ao array empresas:", empresas.length);
 
+    console.log("[STATUS ENVIADO] Salvando leads");
     onStatus?.("Salvando leads", 95);
 
     console.log("[executarScraping] Antes de browser.close()");
@@ -127,6 +131,7 @@ export async function executarScraping(
     console.timeEnd("[executarScraping] browser.close()");
     console.log("[executarScraping] Depois de browser.close()");
 
+    console.log("[STATUS ENVIADO] Finalizado");
     onStatus?.("Finalizado", 100);
 
     return empresas;

@@ -33,6 +33,7 @@ export async function buscarEmpresasMaps(
 ) {
   console.log("[maps] Início de buscarEmpresasMaps()", { termoBusca });
 
+  console.log("[STATUS ENVIADO] Abrindo navegador");
   onStatus?.("Abrindo navegador", 5);
   const browser = await lancarBrowser();
 
@@ -65,6 +66,7 @@ async function buscarEmpresasMapsComBrowser(
     return route.continue();
   });
 
+  console.log("[STATUS ENVIADO] Abrindo Google Maps");
   onStatus?.("Abrindo Google Maps", 10);
   console.log("[maps] Antes de page.goto(https://maps.google.com)");
   console.time("[perf] abrir Google Maps");
@@ -79,6 +81,7 @@ async function buscarEmpresasMapsComBrowser(
   const searchInputCount = await searchInput.count();
   console.log("Campo de busca encontrado:", searchInputCount > 0);
 
+  console.log("[STATUS ENVIADO] Pesquisando termo");
   onStatus?.("Pesquisando termo", 20);
   console.log("[maps] Antes da pesquisa no Google Maps", { termoBusca });
   console.time("[perf] pesquisar termo");
@@ -120,6 +123,7 @@ async function buscarEmpresasMapsComBrowser(
 
   const empresasMap = new Map<string, { nome: string | null; urlMaps: string | null }>();
 
+  console.log("[STATUS ENVIADO] Coletando empresas");
   onStatus?.("Coletando empresas", 35);
   console.log("[maps] Antes de extrair lista de empresas");
   console.time("[perf] extrair lista de empresas");
@@ -148,9 +152,14 @@ async function buscarEmpresasMapsComBrowser(
   console.time("[perf] carregar resultados");
 
   for (let i = 0; i < 5; i++) {
-    await resultsContainer.evaluate((el) => {
-      el.scrollTop = el.scrollHeight;
-    });
+    try {
+      await resultsContainer.evaluate((el) => {
+        el.scrollTop = el.scrollHeight;
+      });
+    } catch (erro) {
+      console.log("[maps] Painel de resultados (role=feed) não encontrado ao rolar, interrompendo scroll:", erro);
+      break;
+    }
 
     await page.waitForTimeout(2000);
 

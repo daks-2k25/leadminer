@@ -40,7 +40,7 @@ export default function Home() {
 
   const handlePesquisar = async () => {
     setLoading(true);
-    setStatus("Buscando leads...");
+    setStatus("");
 
     try {
       const response = await fetch("/api/scraper", {
@@ -114,7 +114,10 @@ export default function Home() {
           Exportar Excel
         </button>
       </div>
-      {status && (
+      {loading && (
+        <p className="mb-6 text-sm text-black dark:text-zinc-50">Buscando leads...</p>
+      )}
+      {!loading && status && (
         <p className="mb-6 text-sm text-black dark:text-zinc-50">{status}</p>
       )}
       <table className="w-full text-left border-collapse text-sm text-black dark:text-zinc-50">
