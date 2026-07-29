@@ -2,7 +2,12 @@ import { Lead } from "@/src/models/lead";
 import { Panel } from "@/components/ui/Panel";
 import { LeadRow } from "@/components/leads/LeadRow";
 
-export function LeadsTable({ leads }: { leads: Lead[] }) {
+type LeadsTableProps = {
+  leads: Lead[];
+  onSelectLead: (lead: Lead) => void;
+};
+
+export function LeadsTable({ leads, onSelectLead }: LeadsTableProps) {
   return (
     <Panel className="overflow-hidden">
       <div className="flex items-center justify-between border-b border-border px-4 py-3">
@@ -29,7 +34,7 @@ export function LeadsTable({ leads }: { leads: Lead[] }) {
           </thead>
           <tbody>
             {leads.map((lead) => (
-              <LeadRow key={lead.urlMaps} lead={lead} />
+              <LeadRow key={lead.urlMaps} lead={lead} onSelect={onSelectLead} />
             ))}
           </tbody>
         </table>

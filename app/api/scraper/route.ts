@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { executarScraping } from "@/src/scraper/service";
+import { registrarBuscaHistorico } from "@/src/storage/searchHistory";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -29,6 +30,21 @@ export async function POST(request: Request) {
             controller.enqueue(linhaNdjson({ tipo: "status", etapa, progresso }));
           }
         );
+
+        try {
+          registrarBuscaHistorico({
+            termoBusca,
+            cidade,
+            bairro,
+            categoria,
+            quantidadeLeads: leads.length,
+          });
+        } catch (erroHistorico) {
+          console.error(
+            "[API /api/scraper] Erro ao registrar histórico de busca:",
+            erroHistorico
+          );
+        }
 
         controller.enqueue(linhaNdjson({ tipo: "resultado", leads }));
       } catch (erro) {

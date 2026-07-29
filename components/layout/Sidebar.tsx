@@ -1,8 +1,42 @@
+"use client";
+
+import { useState } from "react";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { SavedSearchList } from "@/components/saved-searches/SavedSearchList";
+import { SavedSearch } from "@/src/models/savedSearch";
+import { SearchHistoryList } from "@/components/search-history/SearchHistoryList";
+import { SearchHistory } from "@/src/models/searchHistory";
 
-const upcomingItems = ["Buscas salvas", "Exportações"];
+const upcomingItems = ["Exportações"];
 
-export function Sidebar() {
+type SidebarProps = {
+  buscasSalvas: SavedSearch[];
+  buscasSalvasLoading: boolean;
+  buscasSalvasError: string | null;
+  onSelectBuscaSalva: (busca: SavedSearch) => void;
+  onRemoverBuscaSalva: (id: number) => void;
+  historico: SearchHistory[];
+  historicoLoading: boolean;
+  historicoError: string | null;
+  onRepetirHistorico: (item: SearchHistory) => void;
+  onRemoverHistorico: (id: number) => void;
+};
+
+export function Sidebar({
+  buscasSalvas,
+  buscasSalvasLoading,
+  buscasSalvasError,
+  onSelectBuscaSalva,
+  onRemoverBuscaSalva,
+  historico,
+  historicoLoading,
+  historicoError,
+  onRepetirHistorico,
+  onRemoverHistorico,
+}: SidebarProps) {
+  const [buscasAbertas, setBuscasAbertas] = useState(false);
+  const [historicoAberto, setHistoricoAberto] = useState(false);
+
   return (
     <aside className="hidden w-52 shrink-0 flex-col gap-1 border-r border-border bg-subtle p-3 md:flex">
       <div className="flex items-center gap-2 px-2 pb-4 pt-1">
@@ -21,6 +55,52 @@ export function Sidebar() {
         <span className="h-1.5 w-1.5 rounded-full bg-accent" />
         Leads
       </div>
+
+      <button
+        type="button"
+        onClick={() => setBuscasAbertas((atual) => !atual)}
+        aria-expanded={buscasAbertas}
+        className="flex items-center gap-2.5 rounded-[7px] px-2.5 py-2 text-[13px] font-medium text-foreground transition-colors hover:bg-surface"
+      >
+        <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+        Buscas salvas
+        <span className="ml-auto text-[9px] text-muted-2">{buscasAbertas ? "▲" : "▼"}</span>
+      </button>
+
+      {buscasAbertas && (
+        <div className="ml-1 border-l border-border py-0.5 pl-1.5">
+          <SavedSearchList
+            buscas={buscasSalvas}
+            loading={buscasSalvasLoading}
+            error={buscasSalvasError}
+            onSelect={onSelectBuscaSalva}
+            onRemove={onRemoverBuscaSalva}
+          />
+        </div>
+      )}
+
+      <button
+        type="button"
+        onClick={() => setHistoricoAberto((atual) => !atual)}
+        aria-expanded={historicoAberto}
+        className="flex items-center gap-2.5 rounded-[7px] px-2.5 py-2 text-[13px] font-medium text-foreground transition-colors hover:bg-surface"
+      >
+        <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+        Histórico
+        <span className="ml-auto text-[9px] text-muted-2">{historicoAberto ? "▲" : "▼"}</span>
+      </button>
+
+      {historicoAberto && (
+        <div className="ml-1 border-l border-border py-0.5 pl-1.5">
+          <SearchHistoryList
+            historico={historico}
+            loading={historicoLoading}
+            error={historicoError}
+            onRepetir={onRepetirHistorico}
+            onRemove={onRemoverHistorico}
+          />
+        </div>
+      )}
 
       {upcomingItems.map((item) => (
         <div

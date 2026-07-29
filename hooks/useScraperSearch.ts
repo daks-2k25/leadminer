@@ -1,12 +1,9 @@
 import { useState } from "react";
-import { flushSync } from "react-dom";
 import { Lead } from "@/src/models/lead";
 import { SearchStatus } from "@/components/feedback/StatusBanner";
 
 interface EventoStatus {
   tipo: "status";
-  etapa: string;
-  progresso: number;
 }
 
 interface EventoResultado {
@@ -43,14 +40,10 @@ export function useScraperSearch(onResultados: (leads: Lead[]) => void) {
   const [categoria, setCategoria] = useState("");
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<SearchStatus | null>(null);
-  const [etapa, setEtapa] = useState<string | null>(null);
-  const [progresso, setProgresso] = useState(0);
 
   const handlePesquisar = async () => {
     setLoading(true);
     setStatus(null);
-    setEtapa(null);
-    setProgresso(0);
 
     try {
       const response = await fetch("/api/scraper", {
@@ -89,14 +82,7 @@ export function useScraperSearch(onResultados: (leads: Lead[]) => void) {
           if (!linha.trim()) continue;
           const evento: EventoScraper = JSON.parse(linha);
 
-          if (evento.tipo === "status") {
-            flushSync(() => {
-              setEtapa(evento.etapa);
-              setProgresso(evento.progresso);
-            });
-            await new Promise((resolve) => requestAnimationFrame(resolve));
-          } else if (evento.tipo === "resultado") {
-            setProgresso(100);
+          if (evento.tipo === "resultado") {
             setStatus({ message: mensagemSucesso(evento.leads.length), tone: "success" });
             onResultados(evento.leads);
           } else if (evento.tipo === "erro") {
@@ -125,8 +111,6 @@ export function useScraperSearch(onResultados: (leads: Lead[]) => void) {
     setCategoria,
     loading,
     status,
-    etapa,
-    progresso,
     handlePesquisar,
   };
 }

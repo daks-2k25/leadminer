@@ -74,7 +74,13 @@ async function buscarEmpresasMapsComBrowser(
   console.timeEnd("[perf] abrir Google Maps");
   console.log("[maps] Depois de page.goto(https://maps.google.com)");
 
+  console.log("[STATUS ENVIADO] Carregando Google Maps...");
+  onStatus?.("Carregando Google Maps...", 13);
+
   await page.waitForTimeout(5000);
+
+  console.log("[STATUS ENVIADO] Google Maps carregado");
+  onStatus?.("Google Maps carregado", 16);
 
   const searchInput = page.locator('input[name="q"]');
 
@@ -94,6 +100,9 @@ async function buscarEmpresasMapsComBrowser(
   await searchInput.press("Enter");
   console.log("Enter pressionado");
 
+  console.log("[STATUS ENVIADO] Aguardando resultados...");
+  onStatus?.("Aguardando resultados...", 25);
+
   try {
     await page.waitForURL("**/search/**");
   } catch {
@@ -105,6 +114,9 @@ async function buscarEmpresasMapsComBrowser(
   console.log(page.url());
 
   await page.waitForTimeout(5000);
+
+  console.log("[STATUS ENVIADO] Resultados encontrados");
+  onStatus?.("Resultados encontrados", 32);
 
   console.timeEnd("[perf] pesquisar termo");
   console.log("[maps] Depois da pesquisa no Google Maps");
@@ -152,6 +164,11 @@ async function buscarEmpresasMapsComBrowser(
   console.time("[perf] carregar resultados");
 
   for (let i = 0; i < 5; i++) {
+    const iteracaoScroll = i + 1;
+    const progressoScroll = 35 + Math.round((iteracaoScroll / 5) * 5);
+    console.log(`[STATUS ENVIADO] Carregando mais resultados (${iteracaoScroll}/5)`);
+    onStatus?.(`Carregando mais resultados (${iteracaoScroll}/5)`, progressoScroll);
+
     try {
       await resultsContainer.evaluate((el) => {
         el.scrollTop = el.scrollHeight;

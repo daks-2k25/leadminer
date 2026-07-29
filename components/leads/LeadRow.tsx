@@ -14,9 +14,17 @@ function formatarData(iso: string) {
   });
 }
 
-export function LeadRow({ lead }: { lead: Lead }) {
+type LeadRowProps = {
+  lead: Lead;
+  onSelect: (lead: Lead) => void;
+};
+
+export function LeadRow({ lead, onSelect }: LeadRowProps) {
   return (
-    <tr className="odd:bg-surface even:bg-subtle transition-colors hover:bg-accent-soft">
+    <tr
+      onClick={() => onSelect(lead)}
+      className="cursor-pointer odd:bg-surface even:bg-subtle transition-colors hover:bg-accent-soft"
+    >
       <td className="border-b border-border px-4 py-3">
         <div className="font-semibold text-foreground">{lead.nome ?? "—"}</div>
         {lead.endereco && (
@@ -36,7 +44,7 @@ export function LeadRow({ lead }: { lead: Lead }) {
       <td className="border-b border-border px-4 py-3 font-mono text-muted tabular-nums">
         {formatarData(lead.capturadoEm)}
       </td>
-      <td className="border-b border-border px-4 py-3">
+      <td className="border-b border-border px-4 py-3" onClick={(event) => event.stopPropagation()}>
         <LeadActions lead={lead} />
       </td>
     </tr>

@@ -14,8 +14,10 @@ export interface SearchBarProps {
   onCategoriaChange: (value: string) => void;
   onPesquisar: () => void;
   onExportar: () => void;
+  onSalvarBusca: () => void;
   loading: boolean;
   podeExportar: boolean;
+  podeSalvarBusca: boolean;
 }
 
 function handler(setter: (value: string) => void) {
@@ -33,8 +35,10 @@ export function SearchBar({
   onCategoriaChange,
   onPesquisar,
   onExportar,
+  onSalvarBusca,
   loading,
   podeExportar,
+  podeSalvarBusca,
 }: SearchBarProps) {
   return (
     <Panel className="flex flex-col md:flex-row md:items-stretch">
@@ -71,6 +75,9 @@ export function SearchBar({
       <div className="flex items-center gap-1.5 border-t border-border bg-subtle p-2 md:border-t-0 md:border-l">
         <Button variant="ghost" onClick={onExportar} disabled={loading || !podeExportar}>
           Exportar
+        </Button>
+        <Button variant="ghost" onClick={onSalvarBusca} disabled={loading || !podeSalvarBusca}>
+          Salvar busca
         </Button>
         <Button variant="primary" onClick={onPesquisar} disabled={loading} aria-busy={loading}>
           {loading && (
