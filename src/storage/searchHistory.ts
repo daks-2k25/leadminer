@@ -2,6 +2,7 @@ import { DatabaseSync } from "node:sqlite";
 import { mkdirSync } from "node:fs";
 import path from "node:path";
 import { SearchHistory } from "../models/searchHistory";
+import { Lead } from "../models/lead";
 
 const dbPath = path.join(process.cwd(), "data", "leads.db");
 mkdirSync(path.dirname(dbPath), { recursive: true });
@@ -17,6 +18,30 @@ db.exec(`
     categoria TEXT,
     quantidadeLeads INTEGER NOT NULL,
     criadoEm TEXT NOT NULL
+  )
+`);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS search_history_leads (
+    search_history_id INTEGER NOT NULL,
+    lead_id INTEGER NOT NULL,
+    PRIMARY KEY (search_history_id, lead_id)
+  )
+`);
+
+// Garante a existência da tabela "leads" (definida em storage/leads.ts) para
+// o JOIN abaixo funcionar mesmo se este módulo carregar antes daquele.
+db.exec(`
+  CREATE TABLE IF NOT EXISTS leads (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nome TEXT,
+    telefone TEXT,
+    website TEXT,
+    endereco TEXT,
+    cidade TEXT,
+    categoria TEXT,
+    urlMaps TEXT UNIQUE,
+    capturadoEm TEXT
   )
 `);
 
@@ -62,6 +87,34 @@ const removerStmt = db.prepare(`
   DELETE FROM search_history WHERE id = ?
 `);
 
+const removerVinculosStmt = db.prepare(`
+  DELETE FROM search_history_leads WHERE search_history_id = ?
+`);
+
 export function removerHistoricoBusca(id: number) {
+  removerVinculosStmt.run(id);
   removerStmt.run(id);
+}
+
+const vincularLeadStmt = db.prepare(`
+  INSERT OR IGNORE INTO search_history_leads (search_history_id, lead_id)
+  VALUES (?, ?)
+`);
+
+export function vincularLeadsABusca(searchHistoryId: number, leadIds: number[]) {
+  for (const leadId of leadIds) {
+    vincularLeadStmt.run(searchHistoryId, leadId);
+  }
+}
+
+const listarLeadsDaBuscaStmt = db.prepare(`
+  SELECT leads.nome, leads.telefone, leads.website, leads.endereco, leads.cidade, leads.categoria, leads.urlMaps, leads.capturadoEm
+  FROM search_history_leads
+  JOIN leads ON leads.id = search_history_leads.lead_id
+  WHERE search_history_leads.search_history_id = ?
+  ORDER BY leads.id DESC
+`);
+
+export function listarLeadsDaBusca(searchHistoryId: number): Lead[] {
+  return listarLeadsDaBuscaStmt.all(searchHistoryId) as unknown as Lead[];
 }

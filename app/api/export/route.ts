@@ -29,6 +29,32 @@ function celulaTexto(valor: unknown): string {
   return valor ? String(valor) : "";
 }
 
+function sanitizarParaNomeArquivo(valor: string): string {
+  return valor
+    .normalize("NFD")
+    .replace(/\p{Mn}/gu, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function formatarDataArquivo(data: Date): string {
+  const ano = data.getFullYear();
+  const mes = String(data.getMonth() + 1).padStart(2, "0");
+  const dia = String(data.getDate()).padStart(2, "0");
+  return `${ano}-${mes}-${dia}`;
+}
+
+function gerarNomeArquivo(leads: Lead[]): string {
+  const primeiro = leads[0];
+
+  const partes = [primeiro?.categoria, primeiro?.cidade, formatarDataArquivo(new Date())]
+    .map((parte) => (parte ? sanitizarParaNomeArquivo(parte) : null))
+    .filter((parte): parte is string => Boolean(parte));
+
+  return `leads-${partes.join("-")}.xlsx`;
+}
+
 export async function POST(request: Request) {
   const leads: Lead[] = await request.json();
 
@@ -95,12 +121,13 @@ export async function POST(request: Request) {
   sheet.views = [{ state: "frozen", ySplit: HEADER_ROW }];
 
   const buffer = await workbook.xlsx.writeBuffer();
+  const nomeArquivo = gerarNomeArquivo(leads);
 
   return new NextResponse(buffer, {
     headers: {
       "Content-Type":
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "Content-Disposition": "attachment; filename=leads.xlsx",
+      "Content-Disposition": `attachment; filename="${nomeArquivo}"`,
     },
   });
 }

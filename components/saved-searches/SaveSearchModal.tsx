@@ -12,6 +12,7 @@ type SaveSearchModalProps = {
   bairro: string;
   categoria: string;
   salvando: boolean;
+  erro?: string | null;
   onClose: () => void;
   onSalvar: (nome: string) => void;
 };
@@ -23,6 +24,7 @@ export function SaveSearchModal({
   bairro,
   categoria,
   salvando,
+  erro,
   onClose,
   onSalvar,
 }: SaveSearchModalProps) {
@@ -66,6 +68,12 @@ export function SaveSearchModal({
             autoFocus
             disabled={salvando}
           />
+
+          {erro && (
+            <p className="px-5 pb-3 text-[12px] text-danger" role="alert">
+              {erro}
+            </p>
+          )}
 
           <div className="flex items-center justify-end gap-2 border-t border-border px-5 py-3">
             <Button type="button" variant="ghost" onClick={onClose} disabled={salvando}>

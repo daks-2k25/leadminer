@@ -127,7 +127,11 @@ export async function executarScraping(
 
     console.log("[executarScraping] Antes de browser.close()");
     console.time("[executarScraping] browser.close()");
-    await browser.close();
+    try {
+      await browser.close();
+    } catch (erroFechamento) {
+      console.error("[executarScraping] Erro ao fechar o navegador:", erroFechamento);
+    }
     console.timeEnd("[executarScraping] browser.close()");
     console.log("[executarScraping] Depois de browser.close()");
 

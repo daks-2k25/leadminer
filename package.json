@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "backup": "tsx scripts/backup-db.ts"
   },
   "dependencies": {
     "@sparticuz/chromium": "^149.0.0",

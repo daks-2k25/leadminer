@@ -55,3 +55,18 @@ const listarStmt = db.prepare(`
 export function listarLeads(): Lead[] {
   return listarStmt.all() as unknown as Lead[];
 }
+
+const buscarIdPorUrlMapsStmt = db.prepare(`
+  SELECT id, urlMaps FROM leads WHERE urlMaps = ?
+`);
+
+export function buscarIdsPorUrlMaps(urls: string[]): { id: number; urlMaps: string }[] {
+  const resultados: { id: number; urlMaps: string }[] = [];
+
+  for (const url of urls) {
+    const linha = buscarIdPorUrlMapsStmt.get(url) as { id: number; urlMaps: string } | undefined;
+    if (linha) resultados.push(linha);
+  }
+
+  return resultados;
+}

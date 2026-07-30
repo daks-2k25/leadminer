@@ -33,6 +33,9 @@ type SearchHistoryListProps = {
   error: string | null;
   onRepetir: (item: SearchHistory) => void;
   onRemove: (id: number) => void;
+  onExportar: (item: SearchHistory) => void;
+  exportandoId: number | null;
+  erroExportacao: string | null;
 };
 
 export function SearchHistoryList({
@@ -41,6 +44,9 @@ export function SearchHistoryList({
   error,
   onRepetir,
   onRemove,
+  onExportar,
+  exportandoId,
+  erroExportacao,
 }: SearchHistoryListProps) {
   const [periodo, setPeriodo] = useState<PeriodoFiltro>("todos");
 
@@ -53,6 +59,10 @@ export function SearchHistoryList({
     <div className="flex flex-col gap-1">
       <SearchHistoryFilters periodo={periodo} onChange={setPeriodo} />
 
+      {erroExportacao && (
+        <div className="px-2 py-1.5 text-[11.5px] text-danger">{erroExportacao}</div>
+      )}
+
       {loading ? (
         <div className="px-2 py-1.5 text-[11.5px] text-muted-2">Carregando...</div>
       ) : error ? (
@@ -62,7 +72,14 @@ export function SearchHistoryList({
       ) : (
         <div className="flex flex-col gap-0.5">
           {historicoFiltrado.map((item) => (
-            <SearchHistoryItem key={item.id} item={item} onRepetir={onRepetir} onRemove={onRemove} />
+            <SearchHistoryItem
+              key={item.id}
+              item={item}
+              onRepetir={onRepetir}
+              onRemove={onRemove}
+              onExportar={onExportar}
+              exportando={exportandoId === item.id}
+            />
           ))}
         </div>
       )}

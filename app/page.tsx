@@ -7,6 +7,7 @@ import { SearchHistory } from "@/src/models/searchHistory";
 import { useLeads } from "@/hooks/useLeads";
 import { useScraperSearch } from "@/hooks/useScraperSearch";
 import { useExportLeads } from "@/hooks/useExportLeads";
+import { useExportHistoricoLeads } from "@/hooks/useExportHistoricoLeads";
 import { useSavedSearches } from "@/hooks/useSavedSearches";
 import { useSearchHistory } from "@/hooks/useSearchHistory";
 import { deriveLeadStats } from "@/lib/leadStats";
@@ -34,9 +35,15 @@ export default function Home() {
     setCategoria,
     loading,
     status,
+    progresso,
     handlePesquisar,
   } = useScraperSearch(setLeads);
-  const { handleExportar } = useExportLeads(leads);
+  const { handleExportar, exportando, erro: erroExportacao } = useExportLeads(leads);
+  const {
+    handleExportarHistorico,
+    exportandoId: exportandoHistoricoId,
+    erro: erroExportacaoHistorico,
+  } = useExportHistoricoLeads();
   const {
     buscasSalvas,
     loading: buscasSalvasLoading,
@@ -101,6 +108,9 @@ export default function Home() {
         historicoError={historicoError}
         onRepetirHistorico={handleRepetirHistorico}
         onRemoverHistorico={removerHistorico}
+        onExportarHistorico={handleExportarHistorico}
+        exportandoHistoricoId={exportandoHistoricoId}
+        erroExportacaoHistorico={erroExportacaoHistorico}
       />
       <main className="flex flex-1 flex-col gap-4 p-5 md:p-6">
         <SearchBar
@@ -116,16 +126,20 @@ export default function Home() {
           onExportar={handleExportar}
           onSalvarBusca={() => setModalSalvarAberto(true)}
           loading={loading}
+          exportando={exportando}
           podeExportar={leads.length > 0}
           podeSalvarBusca={termoBusca.trim().length > 0}
         />
 
         <StatusBanner status={status} />
+        <StatusBanner
+          status={erroExportacao ? { message: erroExportacao, tone: "error" } : null}
+        />
 
         <StatsStrip stats={stats} />
 
         {loading ? (
-          <LoadingState />
+          <LoadingState progresso={progresso} />
         ) : leads.length === 0 ? (
           <EmptyState />
         ) : (
@@ -142,6 +156,7 @@ export default function Home() {
         bairro={bairro}
         categoria={categoria}
         salvando={salvandoBusca}
+        erro={buscasSalvasError}
         onClose={() => setModalSalvarAberto(false)}
         onSalvar={handleSalvarBusca}
       />

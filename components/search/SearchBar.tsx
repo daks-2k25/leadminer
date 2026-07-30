@@ -16,6 +16,7 @@ export interface SearchBarProps {
   onExportar: () => void;
   onSalvarBusca: () => void;
   loading: boolean;
+  exportando: boolean;
   podeExportar: boolean;
   podeSalvarBusca: boolean;
 }
@@ -37,6 +38,7 @@ export function SearchBar({
   onExportar,
   onSalvarBusca,
   loading,
+  exportando,
   podeExportar,
   podeSalvarBusca,
 }: SearchBarProps) {
@@ -73,8 +75,8 @@ export function SearchBar({
         />
       </div>
       <div className="flex items-center gap-1.5 border-t border-border bg-subtle p-2 md:border-t-0 md:border-l">
-        <Button variant="ghost" onClick={onExportar} disabled={loading || !podeExportar}>
-          Exportar
+        <Button variant="ghost" onClick={onExportar} disabled={loading || exportando || !podeExportar}>
+          {exportando ? "Exportando..." : "Exportar"}
         </Button>
         <Button variant="ghost" onClick={onSalvarBusca} disabled={loading || !podeSalvarBusca}>
           Salvar busca

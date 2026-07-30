@@ -15,9 +15,17 @@ type SearchHistoryItemProps = {
   item: SearchHistory;
   onRepetir: (item: SearchHistory) => void;
   onRemove: (id: number) => void;
+  onExportar: (item: SearchHistory) => void;
+  exportando: boolean;
 };
 
-export function SearchHistoryItem({ item, onRepetir, onRemove }: SearchHistoryItemProps) {
+export function SearchHistoryItem({
+  item,
+  onRepetir,
+  onRemove,
+  onExportar,
+  exportando,
+}: SearchHistoryItemProps) {
   const localizacao = [item.bairro, item.cidade].filter(Boolean).join(", ");
   const detalhes = [localizacao, item.categoria].filter(Boolean).join(" · ");
 
@@ -46,9 +54,35 @@ export function SearchHistoryItem({ item, onRepetir, onRemove }: SearchHistoryIt
         <div className="flex items-center gap-1">
           <button
             type="button"
+            onClick={() => onExportar(item)}
+            disabled={exportando}
+            aria-label={exportando ? "Exportando..." : `Baixar Excel da busca ${item.termoBusca}`}
+            title={exportando ? "Exportando..." : "Baixar Excel"}
+            className="flex h-6 w-6 items-center justify-center rounded-[5px] text-muted-2 transition-colors hover:bg-accent-soft hover:text-accent disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {exportando ? (
+              <span className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent motion-reduce:animate-none" />
+            ) : (
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-3.5 w-3.5"
+              >
+                <path d="M12 3v12" />
+                <path d="M7 10l5 5 5-5" />
+                <path d="M4 19h16" />
+              </svg>
+            )}
+          </button>
+          <button
+            type="button"
             onClick={() => onRepetir(item)}
-            aria-label={`Executar novamente a busca ${item.termoBusca}`}
-            title="Executar novamente"
+            aria-label={`Usar filtros da busca ${item.termoBusca}`}
+            title="Usar filtros"
             className="flex h-6 w-6 items-center justify-center rounded-[5px] text-muted-2 transition-colors hover:bg-accent-soft hover:text-accent"
           >
             <svg
@@ -66,7 +100,14 @@ export function SearchHistoryItem({ item, onRepetir, onRemove }: SearchHistoryIt
           </button>
           <button
             type="button"
-            onClick={() => item.id !== undefined && onRemove(item.id)}
+            onClick={() => {
+              if (
+                item.id !== undefined &&
+                window.confirm(`Excluir "${item.termoBusca}" do histórico de buscas?`)
+              ) {
+                onRemove(item.id);
+              }
+            }}
             aria-label={`Excluir histórico de ${item.termoBusca}`}
             title="Excluir"
             className="flex h-6 w-6 items-center justify-center rounded-[5px] text-muted-2 transition-colors hover:bg-danger-soft hover:text-danger"

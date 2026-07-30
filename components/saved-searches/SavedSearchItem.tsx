@@ -19,7 +19,11 @@ export function SavedSearchItem({ busca, onSelect, onRemove }: SavedSearchItemPr
       </button>
       <button
         type="button"
-        onClick={() => busca.id !== undefined && onRemove(busca.id)}
+        onClick={() => {
+          if (busca.id !== undefined && window.confirm(`Excluir a busca salva "${busca.nome}"?`)) {
+            onRemove(busca.id);
+          }
+        }}
         aria-label={`Excluir busca ${busca.nome}`}
         title="Excluir"
         className="flex h-6 w-6 shrink-0 items-center justify-center rounded-[5px] text-muted-2 transition-colors hover:bg-danger-soft hover:text-danger"

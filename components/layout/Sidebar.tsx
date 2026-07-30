@@ -20,6 +20,9 @@ type SidebarProps = {
   historicoError: string | null;
   onRepetirHistorico: (item: SearchHistory) => void;
   onRemoverHistorico: (id: number) => void;
+  onExportarHistorico: (item: SearchHistory) => void;
+  exportandoHistoricoId: number | null;
+  erroExportacaoHistorico: string | null;
 };
 
 export function Sidebar({
@@ -33,6 +36,9 @@ export function Sidebar({
   historicoError,
   onRepetirHistorico,
   onRemoverHistorico,
+  onExportarHistorico,
+  exportandoHistoricoId,
+  erroExportacaoHistorico,
 }: SidebarProps) {
   const [buscasAbertas, setBuscasAbertas] = useState(false);
   const [historicoAberto, setHistoricoAberto] = useState(false);
@@ -98,6 +104,9 @@ export function Sidebar({
             error={historicoError}
             onRepetir={onRepetirHistorico}
             onRemove={onRemoverHistorico}
+            onExportar={onExportarHistorico}
+            exportandoId={exportandoHistoricoId}
+            erroExportacao={erroExportacaoHistorico}
           />
         </div>
       )}

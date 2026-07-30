@@ -4,6 +4,8 @@ import { SearchStatus } from "@/components/feedback/StatusBanner";
 
 interface EventoStatus {
   tipo: "status";
+  etapa: string;
+  progresso: number;
 }
 
 interface EventoResultado {
@@ -40,10 +42,12 @@ export function useScraperSearch(onResultados: (leads: Lead[]) => void) {
   const [categoria, setCategoria] = useState("");
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<SearchStatus | null>(null);
+  const [progresso, setProgresso] = useState<{ etapa: string; progresso: number } | null>(null);
 
   const handlePesquisar = async () => {
     setLoading(true);
     setStatus(null);
+    setProgresso(null);
 
     try {
       const response = await fetch("/api/scraper", {
@@ -82,7 +86,9 @@ export function useScraperSearch(onResultados: (leads: Lead[]) => void) {
           if (!linha.trim()) continue;
           const evento: EventoScraper = JSON.parse(linha);
 
-          if (evento.tipo === "resultado") {
+          if (evento.tipo === "status") {
+            setProgresso({ etapa: evento.etapa, progresso: evento.progresso });
+          } else if (evento.tipo === "resultado") {
             setStatus({ message: mensagemSucesso(evento.leads.length), tone: "success" });
             onResultados(evento.leads);
           } else if (evento.tipo === "erro") {
@@ -111,6 +117,7 @@ export function useScraperSearch(onResultados: (leads: Lead[]) => void) {
     setCategoria,
     loading,
     status,
+    progresso,
     handlePesquisar,
   };
 }
